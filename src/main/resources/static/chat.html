@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Groot Chat</title>
+    <meta charset="UTF-8" />
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+        }
+        .chat-box {
+            width: 400px;
+            margin: 50px auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .chat-header {
+            padding: 10px;
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            font-weight: bold;
+        }
+        .chat-messages {
+            height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .msg {
+            margin-bottom: 10px;
+        }
+        .user {
+            text-align: right;
+            color: #2980b9;
+        }
+        .bot {
+            text-align: left;
+            color: #27ae60;
+        }
+        .chat-input {
+            display: flex;
+            border-top: 1px solid #ddd;
+        }
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+        }
+        .chat-input button {
+            padding: 10px;
+            border: none;
+            background: #2c3e50;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="chat-box">
+    <div class="chat-header">Groot</div>
+    <div id="messages" class="chat-messages"></div>
+    <div class="chat-input">
+        <input id="messageInput" type="text" placeholder="Type message..." />
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+    var socket = new SockJS('http://localhost:8080/ws');
+    var stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, function () {
+        stompClient.subscribe('/topic/messages', function (msg) {
+            let data = JSON.parse(msg.body);
+            addMessage(data.sender, data.content);
+        });
+    });
+
+    function sendMessage() {
+        let text = document.getElementById("messageInput").value;
+        if (!text) return;
+
+        addMessage("USER", text);
+
+        stompClient.send("/app/chat", {}, JSON.stringify({
+            sender: "USER",
+            content: text
+        }));
+
+        document.getElementById("messageInput").value = "";
+    }
+
+    function addMessage(sender, content) {
+        let msgDiv = document.createElement("div");
+        msgDiv.classList.add("msg");
+        msgDiv.classList.add(sender === "USER" ? "user" : "bot");
+        msgDiv.innerText = content;
+        document.getElementById("messages").appendChild(msgDiv);
+    }
+</script>
+
+</body>
+</html>
