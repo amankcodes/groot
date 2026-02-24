@@ -1,6 +1,6 @@
 # Groot 🤖
 
-Groot is a real-time AI chatbot built using Spring Boot.  
+Groot is a real-time AI chatbot built using Spring Boot.
 It supports live messaging via WebSockets and stores chat history in MySQL.
 
 ---
